@@ -16,4 +16,4 @@ if __name__ == '__main__':
 	initpath(prefix)
 	frequency(prefix)
 	pathlength(prefix)
-	# pathinference(prefix, allAS)
+	pathinference(prefix, allAS)

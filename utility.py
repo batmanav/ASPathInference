@@ -13,13 +13,6 @@ def baseAS(prefix):
 def initpath(prefix):
 	db = DatabaseManager('test.sqlite')	
 
-	# result = db.query('SELECT count(*) FROM sqlite_master WHERE type="table" AND name="%s";' % (prefix))
-	# iftable = 0
-	# for i in result:
-	# 	iftable = i[0]
-	# if iftable == 0:
-	# print "Creating a table for this prefix"
-
 	db.query('CREATE TABLE IF NOT EXISTS "%s" (autos text, uncertainty integer, frequency integer , pathlength integer, actualpath text UNIQUE)' % (prefix))
 
  	insertvalues = []
@@ -31,7 +24,6 @@ def initpath(prefix):
 		while x < len(temp):
 			buf = ' '.join(temp[:x+1])
 			insertvalues.append('INSERT OR IGNORE INTO "%s" VALUES ("%s", 0, 0, 0, "%s")' % (prefix, buf.split(' ')[-1], buf))
-			# db.query('INSERT INTO "%s" VALUES ("%s", 0, 0, 0, "%s")' % (prefix, buf.split(' ')[-1], buf))
 			x += 1
 
 	for i in insertvalues:
@@ -64,11 +56,9 @@ def frequency(prefix):
 		for path in rows:
 			i = path.split(' ')
 			j = apaths.split(' ')
-			# print Counter(i), '+', Counter(j), (Counter(i) - Counter(j))
 			if not Counter(j) - Counter(i):
 				freq += 1
 		todo.append('UPDATE "%s" SET frequency = %d WHERE actualpath = "%s"' % (prefix, freq, " ".join(apaths.split(' ')[::-1])))
-		# print freq
 
 	for i in todo:
 		db.query(i)
@@ -76,8 +66,6 @@ def frequency(prefix):
 def pathlength(prefix):
 	db = DatabaseManager('test.sqlite')
 	result = db.query('SELECT actualpath FROM "%s"' % (prefix))
-
-	paths = []
 	todo = []
 	for row in result:
 		pathl = len(row[0].split())
@@ -88,47 +76,69 @@ def pathlength(prefix):
 
 def pathinference(prefix, baseAS):
 	q = deque(baseAS)
+	db = DatabaseManager('test.sqlite')
+
 	while len(q) > 0:
-		autos = q.pop()
-		db.query('CREATE TABLE IF NOT EXISTS "%s" (peers text UNIQUE)' % (autos))
-		peers = db.query('SELECT peers FROM "%s"' % (autos))
-		if not peers:
-			updatepeers()
-		peers = db.query('SELECT peers FROM "%s"' % (autos))
-		allpeers = []
-		for i in peers:
-			allpeers.append(i)
-		caidacheck = False
-		for peer in allpeers:
-			bestpath = db.query('SELECT actualpath FROM "%s" ORDER BY pathlength, frequency LIMIT 1')
-			path = bestpath.split(' ')
-			relationship = db.query('SELECT relationship FROM caidarel WHERE as1 = "%s" and as2 ="%s" OR as1 = "%s" and as2 ="%s"' % (path[-1], path[-2], paht[-2], path[-1]))
-			#Complete checking valleyfree
-			if relationship == 0:
-				newrelationship = db.query('SELECT relationship FROM caidarel WHERE as1 = "%s" and as2 ="%s" OR as1 = "%s" and as2 ="%s"' % (path[-1], peer, peer, path[-1]))
-			elif relationship == 1:
-				newrelationship = db.query('SELECT relationship FROM caidarel WHERE as1 = "%s" and as2 ="%s" OR as1 = "%s" and as2 ="%s"' % (path[-1], peer, peer, path[-1]))
-			elif relationship == -1:
-				newrelationship = db.query('SELECT relationship FROM caidarel WHERE as1 = "%s" and as2 ="%s" OR as1 = "%s" and as2 ="%s"' % (path[-1], peer, peer, path[-1]))
-				
-			if caidacheck == True:
-				print "CAIDA checked"
+		current_as = q.popleft()
+		peers_of_current_as = getpeers(current_as)
 
-			bestpath = db.query('SELECT actualpath FROM "%s" ORDER BY pathlength, frequency LIMIT 1')
+		# Check if path is valley free
 
-			if peer in baseAS and peer not in path:
-				#check origin
+		for peer in peers_of_current_as:
+			if peer in baseAS:
+				continue
+			# path, ul, pl = SPF(current_as, prefix)
+			path = SPF(current_as, prefix)
+			#Check between peer and path if valleyfree.
+			valleyfree = 1
+			temp_best = SPF(peer, prefix)
+			ul = 0
+			pl = 1
+			print temp_best
+			inserted = insertpath(path, peer, ul+1, pl+1)
+			if temp_best != inserted and peer not in q and temp_best!=-1:
+				q.append(peer)
+				print q
 
 
+def getpeers(AS):
+	peers = set()
+	db = DatabaseManager('test.sqlite')
+	result = db.query('SELECT AS1 from caidarel WHERE AS2 = "%s"' % (AS))
+	for row in result:
+		peers.add(row[0])
+	result = db.query('SELECT AS2 from caidarel WHERE AS1 = "%s"' % (AS))
+	for row in result:
+		peers.add(row[0])
+	return peers
 
-		#TODO Import from caidarel
+def insertpath(path, peer, uncertainty, pathlength):
+	db = DatabaseManager('test.sqlite')
+	print str(path) + " " + peer
+	print uncertainty, pathlength
+	# result = db.query()
 
-	# print "Hey"
+def SPF(AS, prefix):
+	db = DatabaseManager('test.sqlite')
+	result = db.query('SELECT actualpath, uncertainty, pathlength FROM "%s" WHERE autos = "%s" ORDER BY pathlength, uncertainty DESC, frequency LIMIT 1' % (prefix, AS))
+	bestpath = -1
+	for row in result:
+		bestpath = row[0]
+		uncertainty = row[1]
+		pathlength = row[2]
+		break
+	# if bestpath == -1:
+	return bestpath
+	# else:
+		# return bestpath, uncertainty, pathlength
 
+def LUF(AS, prefix):
+	db = DatabaseManager('test.sqlite')
+	result = db.query('SELECT actualpath FROM "%s" WHERE autos = "%s" ORDER BY uncertainty DESC, frequency, pathlength LIMIT 1' % (prefix, AS))
+	bestpath = -1
+	for row in result:
+		bestpath = row[0]
+		break
+	return bestpath
 
-#TODO
-
-def updatepeers(AS):
-	print "TODO"
-	
 
