@@ -28,12 +28,6 @@ def initpath(prefix):
 
 	for i in insertvalues:
 		db.query(i)
-		# x = 0
-		# temp = startingpath.split(' ')
-		# while x < temp:
-		# 	print startingpath[:x]
-		# 	x += 1
-		# print row[0].split(' ').reverse().join(' ')
 
 def frequency(prefix):
 	db = DatabaseManager('test.sqlite')
@@ -82,23 +76,50 @@ def pathinference(prefix, baseAS):
 		current_as = q.popleft()
 		peers_of_current_as = getpeers(current_as)
 
-		# Check if path is valley free
-
 		for peer in peers_of_current_as:
+
 			if peer in baseAS:
 				continue
-			# path, ul, pl = SPF(current_as, prefix)
-			path = SPF(current_as, prefix)
+
+			tpath = SPF(current_as, prefix)
+			path = tpath[0]
+			ul = tpath[1]
+			pl = tpath[2]
+			freq = tpath[3]
+
 			#Check between peer and path if valleyfree.
-			valleyfree = 1
+			if pl > 1:
+				s1 = db.query('SELECT relationship from caidarel WHERE AS1 = "%s" and AS2 = "%s"' % (path.split()[-2], path.split()[-1]))
+				s2 = db.query('SELECT relationship from caidarel WHERE AS2 = "%s" and AS1 = "%s"' % (path.split()[-2], path.split()[-1]))
+				if s2 == -1:
+					rel = 1
+				elif s2 == 0 or s1 == 0:
+					rel = 2
+				elif s1 == -1:
+					rel = 0
+				valleyfree = 1
+			else:
+				s1 = db.query('SELECT relationship from caidarel WHERE AS1 = "%s" and AS2 = "%s"' % (peer, path.split()[-1]))
+				s2 = db.query('SELECT relationship from caidarel WHERE AS2 = "%s" and AS1 = "%s"' % (peer, path.split()[-1]))
+				if s2 == 0 or s2 == -1:
+					valleyfree = 1
+				if s1 == 0 or s1 == -1:
+					valleyfree = 1
+
+			if not valleyfree:
+				continue
+
 			temp_best = SPF(peer, prefix)
-			ul = 0
-			pl = 1
-			print temp_best
-			inserted = insertpath(path, peer, ul+1, pl+1)
-			if temp_best != inserted and peer not in q and temp_best!=-1:
+
+			if temp_best[0] == -1:
+				add2q = 0
+			else:
+				add2q = 1
+
+			inserted = insertpath(path, peer, ul+1, pl+1, freq, prefix)
+
+			if add2q == 1 and temp_best[0] != inserted and peer not in q and temp_best != -1:
 				q.append(peer)
-				print q
 
 
 def getpeers(AS):
@@ -112,33 +133,37 @@ def getpeers(AS):
 		peers.add(row[0])
 	return peers
 
-def insertpath(path, peer, uncertainty, pathlength):
+def insertpath(path, peer, uncertainty, pathlength, freq, prefix):
 	db = DatabaseManager('test.sqlite')
-	print str(path) + " " + peer
-	print uncertainty, pathlength
-	# result = db.query()
+	newpath = str(path) + " " + peer
+	# print peer, uncertainty, freq, pathlength, newpath
+	result = db.query('INSERT OR IGNORE INTO "%s" VALUES ("%s", %d, %d, %d, "%s")' % (prefix, peer, uncertainty, freq, pathlength, newpath))
+	return newpath
 
 def SPF(AS, prefix):
 	db = DatabaseManager('test.sqlite')
-	result = db.query('SELECT actualpath, uncertainty, pathlength FROM "%s" WHERE autos = "%s" ORDER BY pathlength, uncertainty DESC, frequency LIMIT 1' % (prefix, AS))
-	bestpath = -1
+	result = db.query('SELECT actualpath, uncertainty, pathlength, frequency FROM "%s" WHERE autos = "%s" ORDER BY pathlength, uncertainty DESC, frequency LIMIT 1' % (prefix, AS))
+	bestpath = []
 	for row in result:
-		bestpath = row[0]
-		uncertainty = row[1]
-		pathlength = row[2]
-		break
-	# if bestpath == -1:
-	return bestpath
-	# else:
-		# return bestpath, uncertainty, pathlength
+		bestpath.append(row[0])
+		bestpath.append(row[1])
+		bestpath.append(row[2])
+		bestpath.append(row[3])
+		return bestpath
+	else:
+		return [-1]
 
 def LUF(AS, prefix):
 	db = DatabaseManager('test.sqlite')
-	result = db.query('SELECT actualpath FROM "%s" WHERE autos = "%s" ORDER BY uncertainty DESC, frequency, pathlength LIMIT 1' % (prefix, AS))
-	bestpath = -1
+	result = db.query('SELECT actualpath, uncertainty, pathlength, frequency FROM "%s" WHERE autos = "%s" ORDER BY uncertainty DESC, frequency, pathlength LIMIT 1' % (prefix, AS))
+	bestpath = []
 	for row in result:
-		bestpath = row[0]
-		break
-	return bestpath
+		bestpath.append(row[0])
+		bestpath.append(row[1])
+		bestpath.append(row[2])
+		bestpath.append(row[3])
+		return bestpath
+	else:
+		return [-1]
 
 
