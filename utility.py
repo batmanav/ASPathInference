@@ -87,17 +87,34 @@ def pathinference(prefix, baseAS):
 			pl = tpath[2]
 			freq = tpath[3]
 
+			valleyfree = 0
 			#Check between peer and path if valleyfree.
 			if pl > 1:
 				s1 = db.query('SELECT relationship from caidarel WHERE AS1 = "%s" and AS2 = "%s"' % (path.split()[-2], path.split()[-1]))
 				s2 = db.query('SELECT relationship from caidarel WHERE AS2 = "%s" and AS1 = "%s"' % (path.split()[-2], path.split()[-1]))
+
 				if s2 == -1:
 					rel = 1
 				elif s2 == 0 or s1 == 0:
 					rel = 2
 				elif s1 == -1:
 					rel = 0
-				valleyfree = 1
+
+				if rel == 0:
+					s1 = db.query('SELECT relationship from caidarel WHERE AS1 = "%s" and AS2 = "%s"' % (peer, path.split()[-1]))
+					s2 = db.query('SELECT relationship from caidarel WHERE AS2 = "%s" and AS1 = "%s"' % (peer, path.split()[-1]))
+					if s1 == -1 or s1 == 0:
+						valleyfree = 1
+					elif s2 == -1 or s2 == 0:
+						valleyfree = 1
+				elif rel == 1:
+					s1 = db.query('SELECT relationship from caidarel WHERE AS1 = "%s" and AS2 = "%s"' % (peer, path.split()[-1]))
+					if s1 == -1:
+						valleyfree = 1		
+				elif rel == 2:
+					s1 = db.query('SELECT relationship from caidarel WHERE AS1 = "%s" and AS2 = "%s"' % (peer, path.split()[-1]))
+					if s1 == -1:
+						valleyfree = 1
 			else:
 				s1 = db.query('SELECT relationship from caidarel WHERE AS1 = "%s" and AS2 = "%s"' % (peer, path.split()[-1]))
 				s2 = db.query('SELECT relationship from caidarel WHERE AS2 = "%s" and AS1 = "%s"' % (peer, path.split()[-1]))
@@ -120,7 +137,6 @@ def pathinference(prefix, baseAS):
 
 			if add2q == 1 and temp_best[0] != inserted and peer not in q and temp_best != -1:
 				q.append(peer)
-
 
 def getpeers(AS):
 	peers = set()

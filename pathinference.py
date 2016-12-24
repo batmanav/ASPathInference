@@ -17,3 +17,5 @@ if __name__ == '__main__':
 	frequency(prefix)
 	pathlength(prefix)
 	pathinference(prefix, allAS)
+
+	#generate best paths text file
