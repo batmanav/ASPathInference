@@ -27,6 +27,7 @@ To import this file into the database, update the filename in the caidarel.py fi
 #####RIBS:
 RIBS are taken from http://archive.routeviews.org/
 Files:
+
 1. ./routeviews-urls.txt : List of URL of collectors(currently 18) available at archive.routeviews.org
 
 2. ./getribs.py : 
@@ -47,6 +48,7 @@ NOTE: Needs ./zebra-dump-parser in directory.
 5. ./zebra-dump-parser
 
 Steps:
+
 1. Run python ./getribs.py
 
 2. Run python decompress_ribs.py from_folder to_folder. Decompression may take time. Divide tasks in small range of 
