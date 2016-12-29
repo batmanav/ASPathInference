@@ -48,9 +48,12 @@ NOTE: Needs ./zebra-dump-parser in directory.
 
 Steps:
 1. Run python ./getribs.py
+
 2. Run python decompress_ribs.py from_folder to_folder. Decompression may take time. Divide tasks in small range of 
 from_folder to_folder
+
 3. Run python generate_txt.py from_folder to_folder
+
 4. After this txt RIB files are created in respective folders. use cat to combine all files in a single file
 eg. cat ./1/RIB21.txt ./2/RIB21.txt ... ./18/RIB21.txt > ribout.txt
 
