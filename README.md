@@ -28,11 +28,11 @@ To import this file into the database, update the filename in the caidarel.py fi
 RIBS are taken from http://archive.routeviews.org/
 Files:
 
-1. ./routeviews-urls.txt : List of URL of collectors(currently 18) available at archive.routeviews.org
+1. ./routeviews-urls.list : List of URL of collectors(currently 18) available at archive.routeviews.org
 
 2. ./getribs.py : 
 Usage: python ./getribs.py
-Get rib files from http://archive.routeviews.org for the urls specifies in routeviews-urls.txt. 
+Get rib files from http://archive.routeviews.org for the urls specifies in routeviews-urls.list
 Modify time,day,year,month parameters to get RIB of that time. 
 RIBS are downloaded in 18 folders named by their respective numbers.
 
