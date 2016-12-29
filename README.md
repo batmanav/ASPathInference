@@ -27,6 +27,7 @@ To import this file into the database, update the filename in the caidarel.py fi
 #####RIBS:
 RIBS are taken from http://archive.routeviews.org/
 Files:
+
 1. ./routeviews-urls.txt : List of URL of collectors(currently 18) available at archive.routeviews.org
 
 2. ./getribs.py : 
@@ -36,21 +37,25 @@ Modify time,day,year,month parameters to get RIB of that time.
 RIBS are downloaded in 18 folders named by their respective numbers.
 
 3. ./decompress_ribs.py :
-Usage: python decompress_ribs.py <from_folder> <to_folder>
-Decompress RIBS downloaded in folder beginning <from_folder>  to <to_folder>
+Usage: python decompress_ribs.py from_folder to_folder
+Decompress RIBS downloaded in folder beginning from_folder  to to_folder
 
 4. ./generate_txt.py
-Usage: python generate_txt.py <from_folder> <to_folder>
-Generated txt file of RIBS from decompressed RIBS beginning <from_folder>  to <to_folder>
+Usage: python generate_txt.py from_folder to_folder
+Generated txt file of RIBS from decompressed RIBS beginning from_folder  to to_folder
 NOTE: Needs ./zebra-dump-parser in directory.
 
 5. ./zebra-dump-parser
 
 Steps:
+
 1. Run python ./getribs.py
-2. Run python decompress_ribs.py <from_folder> <to_folder>. Decompression may take time. Divide tasks in small range of 
-<from_folder> <to_folder>
-3. Run python generate_txt.py <from_folder> <to_folder>
+
+2. Run python decompress_ribs.py from_folder to_folder. Decompression may take time. Divide tasks in small range of 
+from_folder to_folder
+
+3. Run python generate_txt.py from_folder to_folder
+
 4. After this txt RIB files are created in respective folders. use cat to combine all files in a single file
 eg. cat ./1/RIB21.txt ./2/RIB21.txt ... ./18/RIB21.txt > ribout.txt
 
