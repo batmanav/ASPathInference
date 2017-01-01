@@ -2,7 +2,7 @@
 ## AS Path Inference
 
 
-----------
+---------
 
 
 ### Installation
@@ -14,6 +14,7 @@ Prerequisites:
  - sqlite3
 
 #####CAIDA AS Relationship Database:
+
 Get the as-rel file from: http://data.caida.org/datasets/as-relationships/serial-1/
 The as-rel files contain p2p and p2c relationships.  The format is:
 
@@ -21,7 +22,7 @@ The as-rel files contain p2p and p2c relationships.  The format is:
 
     <peer-as>|<peer-as>|0
 
-To import this file into the database, update the filename in the caidarel.py file in the migrations folder run the file. 
+To import this file into the database, update the filename in the caidarel.py file in the migrations folder, and then run caidarel.py. 
 
 
 #####RIBS:
@@ -59,12 +60,22 @@ from_folder to_folder
 4. After this txt RIB files are created in respective folders. use cat to combine all files in a single file
 eg. cat ./1/RIB21.txt ./2/RIB21.txt ... ./18/RIB21.txt > ribout.txt
 
+After generating ribout.txt:
+
+- Run sortfile.py from migrations folder after changing to filename in sortfile.py
+
+
 ### Usage
 
 ---------
 Clone the repo
 
 Usage: `python pathinference.py <prefix>`
+
+Using directly from the database:
+
+- Load the database using: sqlite3 test.db
+- '.tables' to view all tables
 
 
 
