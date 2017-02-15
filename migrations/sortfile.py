@@ -1,6 +1,6 @@
 import sqlite3
 
-conn = sqlite3.connect('test.sqlite')
+conn = sqlite3.connect('../test.sqlite')
 c = conn.cursor()
 
 c.execute('CREATE TABLE test (prefix text, ASes text)')
