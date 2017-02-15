@@ -1,4 +1,5 @@
 import sqlite3
+import MySQLdb
 
 class DatabaseManager(object):
     def __init__(self, db):
@@ -13,3 +14,20 @@ class DatabaseManager(object):
 
     def __del__(self):
         self.conn.close()
+
+
+class MyDatabaseManager:
+
+    dbc = ("localhost","root","manav","gao")
+
+    def __init__(self):
+        self.db = MySQLdb.connect(*self.dbc)
+        self.cursor = self.db.cursor()
+
+    def query(self, arg):
+        self.cursor.execute(arg)
+        self.db.commit()
+        return self.cursor
+
+    def __del__(self):
+        self.cursor.close()

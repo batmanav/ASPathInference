@@ -1,8 +1,10 @@
-from dbmanager import DatabaseManager
+from dbmanager import DatabaseManager, MyDatabaseManager
 from collections import Counter, deque
 
 def baseAS(prefix):
-	db = DatabaseManager('test.sqlite')
+	# db = DatabaseManager('test.sqlite')
+	db = MyDatabaseManager()	
+
 	allAS = set()
 	result = db.query('SELECT ASes FROM test WHERE prefix = "%s"' % (prefix))
 	for row in result:
@@ -11,9 +13,11 @@ def baseAS(prefix):
 	return list(allAS)
 
 def initpath(prefix):
-	db = DatabaseManager('test.sqlite')	
+	# db = DatabaseManager('test.sqlite')	
+	db = MyDatabaseManager()	
 
-	db.query('CREATE TABLE IF NOT EXISTS "%s" (autos text, uncertainty integer, frequency integer , pathlength integer, actualpath text UNIQUE)' % (prefix))
+
+	db.query('CREATE TABLE IF NOT EXISTS Manav (autos text, uncertainty int, frequency int, pathlength int, actualpath varchar(255) UNIQUE)') # % (prefix))
 
  	insertvalues = []
 	result = db.query('SELECT ASes FROM test WHERE prefix = "%s"' % (prefix))
@@ -23,22 +27,28 @@ def initpath(prefix):
 		x = 0
 		while x < len(temp):
 			buf = ' '.join(temp[:x+1])
-			insertvalues.append('INSERT OR IGNORE INTO "%s" VALUES ("%s", 0, 0, 0, "%s")' % (prefix, buf.split(' ')[-1], buf))
+			# insertvalues.append('INSERT OR IGNORE INTO "%s" VALUES ("%s", 0, 0, 0, "%s")' % (prefix, buf.split(' ')[-1], buf))
+			insertvalues.append('INSERT IGNORE INTO Manav VALUES ("%s", 0, 0, 0, "%s")' % (buf.split(' ')[-1], buf))
 			x += 1
 
 	for i in insertvalues:
 		db.query(i)
 
 def frequency(prefix):
-	db = DatabaseManager('test.sqlite')
+	# db = DatabaseManager('test.sqlite')
+	db = MyDatabaseManager()	
+
+
 
 	result = db.query('SELECT ASes FROM test WHERE prefix = "%s"' % (prefix))
+
 	rows = []
 
 	for row in result:
 		rows.append(row[0])
 
-	newresult = db.query('SELECT actualpath FROM "%s"' % (prefix))
+	# newresult = db.query('SELECT actualpath FROM "%s"' % (prefix))
+	newresult = db.query('SELECT actualpath FROM Manav') # % (prefix))
 	allpaths = []
 	for row in newresult:
 		allpaths.append(" ".join(row[0].split(' ')[::-1]))
@@ -52,25 +62,30 @@ def frequency(prefix):
 			j = apaths.split(' ')
 			if not Counter(j) - Counter(i):
 				freq += 1
-		todo.append('UPDATE "%s" SET frequency = %d WHERE actualpath = "%s"' % (prefix, freq, " ".join(apaths.split(' ')[::-1])))
+		# todo.append('UPDATE "%s" SET frequency = %d WHERE actualpath = "%s"' % (prefix, freq, " ".join(apaths.split(' ')[::-1])))
+		todo.append('UPDATE Manav SET frequency = %d WHERE actualpath = "%s"' % (freq, " ".join(apaths.split(' ')[::-1])))
 
 	for i in todo:
 		db.query(i)
 
 def pathlength(prefix):
-	db = DatabaseManager('test.sqlite')
-	result = db.query('SELECT actualpath FROM "%s"' % (prefix))
+	# db = DatabaseManager('test.sqlite')	
+	db = MyDatabaseManager()	
+
+	# result = db.query('SELECT actualpath FROM "%s"' % (prefix))
+	result = db.query('SELECT actualpath FROM Manav') # % (prefix))
 	todo = []
 	for row in result:
 		pathl = len(row[0].split())
-		todo.append('UPDATE "%s" SET pathlength = %d WHERE actualpath = "%s"' % (prefix, pathl, row[0]))
+		todo.append('UPDATE Manav SET pathlength = %d WHERE actualpath = "%s"' % (pathl, row[0]))
 
 	for i in todo:
 		db.query(i)
 
 def pathinference(prefix, baseAS):
 	q = deque(baseAS)
-	db = DatabaseManager('test.sqlite')
+	# db = DatabaseManager('test.sqlite')
+	db = MyDatabaseManager()	
 
 	while len(q) > 0:
 		current_as = q.popleft()
@@ -92,7 +107,7 @@ def pathinference(prefix, baseAS):
 			if pl > 1:
 				s1 = db.query('SELECT relationship from caidarel WHERE AS1 = "%s" and AS2 = "%s"' % (path.split()[-2], path.split()[-1]))
 				s2 = db.query('SELECT relationship from caidarel WHERE AS2 = "%s" and AS1 = "%s"' % (path.split()[-2], path.split()[-1]))
-
+				rel = 0
 				if s2 == -1:
 					rel = 1
 				elif s2 == 0 or s1 == 0:
@@ -140,7 +155,9 @@ def pathinference(prefix, baseAS):
 
 def getpeers(AS):
 	peers = set()
-	db = DatabaseManager('test.sqlite')
+	# db = DatabaseManager('test.sqlite')
+	db = MyDatabaseManager()	
+
 	result = db.query('SELECT AS1 from caidarel WHERE AS2 = "%s"' % (AS))
 	for row in result:
 		peers.add(row[0])
@@ -150,15 +167,22 @@ def getpeers(AS):
 	return peers
 
 def insertpath(path, peer, uncertainty, pathlength, freq, prefix):
-	db = DatabaseManager('test.sqlite')
+	# db = DatabaseManager('test.sqlite')
+	db = MyDatabaseManager()	
+
 	newpath = str(path) + " " + peer
 	# print peer, uncertainty, freq, pathlength, newpath
-	result = db.query('INSERT OR IGNORE INTO "%s" VALUES ("%s", %d, %d, %d, "%s")' % (prefix, peer, uncertainty, freq, pathlength, newpath))
+	# result = db.query('INSERT OR IGNORE INTO "%s" VALUES ("%s", %d, %d, %d, "%s")' % (prefix, peer, uncertainty, freq, pathlength, newpath))
+	result = db.query('INSERT IGNORE INTO Manav VALUES ("%s", %d, %d, %d, "%s")' % (peer, uncertainty, freq, pathlength, newpath))
 	return newpath
 
 def SPF(AS, prefix):
-	db = DatabaseManager('test.sqlite')
-	result = db.query('SELECT actualpath, uncertainty, pathlength, frequency FROM "%s" WHERE autos = "%s" ORDER BY pathlength, uncertainty DESC, frequency LIMIT 1' % (prefix, AS))
+	# db = DatabaseManager('test.sqlite')
+	db = MyDatabaseManager()	
+
+
+	# result = db.query('SELECT actualpath, uncertainty, pathlength, frequency FROM "%s" WHERE autos = "%s" ORDER BY pathlength, uncertainty DESC, frequency LIMIT 1' % (prefix, AS))
+	result = db.query('SELECT actualpath, uncertainty, pathlength, frequency FROM Manav WHERE autos = "%s" ORDER BY pathlength, uncertainty DESC, frequency LIMIT 1' % (AS))
 	bestpath = []
 	for row in result:
 		bestpath.append(row[0])
@@ -170,7 +194,8 @@ def SPF(AS, prefix):
 		return [-1]
 
 def LUF(AS, prefix):
-	db = DatabaseManager('test.sqlite')
+	# db = DatabaseManager('test.sqlite')	
+	db = MyDatabaseManager()
 	result = db.query('SELECT actualpath, uncertainty, pathlength, frequency FROM "%s" WHERE autos = "%s" ORDER BY uncertainty DESC, frequency, pathlength LIMIT 1' % (prefix, AS))
 	bestpath = []
 	for row in result:
